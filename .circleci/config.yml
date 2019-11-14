@@ -1,0 +1,63 @@
+defaults: &defaults
+  docker:
+    - image: wscandy/ci-aws:1.1.0
+  working_directory: ~/repo
+  environment:
+    - FUNCTION_NAME: lambda
+
+version: 2.1
+
+jobs:
+  source:
+    <<: *defaults
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: .
+          paths: .
+  package:
+    docker:
+      - image: mozilla/sbt
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Package
+          command: sbt assembly
+      - store_artifacts:
+          path: assembly.jar
+          destination: builds/assembly.jar
+      - persist_to_workspace:
+          root: .
+          paths:
+            - assembly.jar
+  deploy:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Deploy
+          command: aws lambda update-function-code --function-name $FUNCTION_NAME --region eu-west-2 --zip-file fileb://assembly.jar
+
+workflows:
+  build_deploy:
+    jobs:
+      - source
+      - package:
+          requires:
+            - source
+          filters:
+            branches:
+              only:
+                - master
+# Uncomment this for continuous deployment
+#      - deploy:
+#          context: wscandy
+#          requires:
+#            - package
+#          filters:
+#            branches:
+#              only:
+#                - master

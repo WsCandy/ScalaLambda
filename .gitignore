@@ -1,0 +1,26 @@
+# Scala
+*.class
+*.log
+
+# ItelliJ IDE ignores
+*.iml
+*.ipr
+*.iws
+.idea
+out
+
+#MacOS Ignore
+.DS_Store
+
+# Eclipse
+build
+.classpath
+.project
+.settings
+org.scala-ide.sdt.core/META-INF/MANIFEST.MF
+org.scala-ide.sdt.update-site/site.xml`
+
+target/
+
+# ENV
+.env
